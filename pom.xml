@@ -21,6 +21,7 @@
     <module>webapp</module>
   </modules>
 
+
   <distributionManagement>
     <site>
       <id>site-server</id>
@@ -29,11 +30,11 @@
     </site>
     <snapshotRepository>
             <id>nexus</id>
-            <url>http://172.31.16.85:8081/repository/maven-project-snapshots/</url>
+            <url>http://54.183.194.32:8081/repository/maven-project-snapshots/</url>
         </snapshotRepository>
         <repository>
             <id>nexus</id>
-            <url>http://172.31.16.85:8081/repository/maven-project-releases/</url>
+            <url>http://54.183.194.32/:8081/repository/maven-project-releases/</url>
         </repository>
   </distributionManagement>
 
