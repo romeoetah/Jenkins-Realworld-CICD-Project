@@ -59,10 +59,10 @@ pipeline {
         steps {
             dir('realworld-cicd-pipeline-project-main/') {
             withSonarQubeEnv('SonarQube') { 
-                withCredentials([string(credentialsId: 'SonarQube-Token', variable: 'SONAR_TOKEN')]) {
+                withCredentials([string(credentialsId: 'SonarQube-Token3', variable: 'SONAR_TOKEN')]) {
                 sh """
                 mvn sonar:sonar \
-                -Dsonar.projectKey=JavaWebApp-Project \
+                -Dsonar.projectKey=JavaWebApp-Project3 \
                 -Dsonar.host.url=http://172.31.0.111:9000 \
                 -Dsonar.login=$SONAR_TOKEN
                 """
