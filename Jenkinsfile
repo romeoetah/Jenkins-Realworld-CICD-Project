@@ -22,9 +22,9 @@ pipeline {
   stages {
     stage('Build') {
       steps {
-        // dir('realworld-cicd-pipeline-project-main/') {
+        //dir('realworld-cicd-pipeline-project-main/') {
         sh 'mvn clean package'
-      //}
+        //}
       }
       post {
         success {
@@ -35,21 +35,21 @@ pipeline {
     }
     stage('Unit Test'){
         steps {
-            // dir('realworld-cicd-pipeline-project-main/') {
-            sh 'mvn test'
-        //}
-    }
+         //dir('realworld-cicd-pipeline-project-main/') {
+         sh 'mvn test'
+         //}
+        }
     }
     stage('Integration Test'){
         steps {
-            // dir('realworld-cicd-pipeline-project-main/') {
+         //dir('realworld-cicd-pipeline-project-main/') {
           sh 'mvn verify -DskipUnitTests'
-        //}
-    }
+       // }
+        }
     }
     stage ('Checkstyle Code Analysis'){
         steps {
-            // dir('realworld-cicd-pipeline-project-main/') {
+            //dir('realworld-cicd-pipeline-project-main/') {
             sh 'mvn checkstyle:checkstyle'
         //}
         }
@@ -61,7 +61,7 @@ pipeline {
     }
     stage('SonarQube Inspection') {
         steps {
-            // dir('realworld-cicd-pipeline-project-main/') {
+            //dir('realworld-cicd-pipeline-project-main/') {
             withSonarQubeEnv('SonarQube') { 
                 withCredentials([string(credentialsId: 'SonarQube-Token', variable: 'SONAR_TOKEN')]) {
                 sh """
@@ -71,9 +71,9 @@ pipeline {
                 -Dsonar.login=$SONAR_TOKEN
                 """
                 }
-           // }
+            //}
+            }
         }
-    }
     }
     // stage('SonarQube GateKeeper') {
     //     steps {
@@ -84,7 +84,7 @@ pipeline {
     // }
     stage("Nexus Artifact Uploader"){
         steps{
-            // dir('realworld-cicd-pipeline-project-main/') {
+            //dir('realworld-cicd-pipeline-project-main/') {
            nexusArtifactUploader(
               nexusVersion: 'nexus3',
               protocol: 'http',
@@ -96,11 +96,11 @@ pipeline {
               artifacts: [
                   [artifactId: 'webapp',
                   classifier: '',
-                  file: "${WORKSPACE}/webapp/target/webapp.war",
+                  file: "${WORKSPACE}/webapp/target/webapp.war",   
                   type: 'war']
               ]
            )
-       // }
+            //}
         }
     }
     stage('Deploy to Development Env') {
@@ -108,24 +108,25 @@ pipeline {
             HOSTS = 'dev'
         }
         steps {
-            // dir('realworld-cicd-pipeline-project-main/') {
+            //dir('realworld-cicd-pipeline-project-main/') {
             withCredentials([usernamePassword(credentialsId: 'Ansible-Credential', passwordVariable: 'PASSWORD', usernameVariable: 'USER_NAME')]) {
                 sh "ansible-playbook -i ${WORKSPACE}/ansible-config/aws_ec2.yaml ${WORKSPACE}/deploy.yaml --extra-vars \"ansible_user=$USER_NAME ansible_password=$PASSWORD hosts=tag_Environment_$HOSTS workspace_path=$WORKSPACE\""
             }
-       // }
-    }
+          //}
+        }
+
     }
     stage('Deploy to Staging Env') {
         environment {
             HOSTS = 'stage'
         }
         steps {
-            // dir('realworld-cicd-pipeline-project-main/') {
+           // dir('realworld-cicd-pipeline-project-main/') {
             withCredentials([usernamePassword(credentialsId: 'Ansible-Credential', passwordVariable: 'PASSWORD', usernameVariable: 'USER_NAME')]) {
                 sh "ansible-playbook -i ${WORKSPACE}/ansible-config/aws_ec2.yaml ${WORKSPACE}/deploy.yaml --extra-vars \"ansible_user=$USER_NAME ansible_password=$PASSWORD hosts=tag_Environment_$HOSTS workspace_path=$WORKSPACE\""
             }
-        //}
-    }
+           // }
+        }
     }
     stage('Quality Assurance Approval') {
         steps {
@@ -137,21 +138,20 @@ pipeline {
             HOSTS = 'prod'
         }
         steps {
-            // dir('realworld-cicd-pipeline-project-main/') {
+           //dir('realworld-cicd-pipeline-project-main/') {
             withCredentials([usernamePassword(credentialsId: 'Ansible-Credential', passwordVariable: 'PASSWORD', usernameVariable: 'USER_NAME')]) {
                 sh "ansible-playbook -i ${WORKSPACE}/ansible-config/aws_ec2.yaml ${WORKSPACE}/deploy.yaml --extra-vars \"ansible_user=$USER_NAME ansible_password=$PASSWORD hosts=tag_Environment_$HOSTS workspace_path=$WORKSPACE\""
             }
-         //}
+          // }
+        }
+         }
       }
-   }
-    }
   post {
     always {
         echo 'Slack Notifications.'
         slackSend channel: 'innovative-batch-pipeline-alert1', //update and provide your channel name
         color: COLOR_MAP[currentBuild.currentResult],
-        message: "*${currentBuild.currentResult}:* Job Name '${env.JOB_NAME}' build ${env.BUILD_NUMBER} \n Build Timestamp: ${env.BUILD_TIMESTAMP} \n Project Workspace: ${env.WORKSPACE} \n More info at: ${env.BUILD_URL}"
+        message: "${currentBuild.currentResult}: Job Name '${env.JOB_NAME}' build ${env.BUILD_NUMBER} \n Build Timestamp: ${env.BUILD_TIMESTAMP} \n Project Workspace: ${env.WORKSPACE} \n More info at: ${env.BUILD_URL}"
     }
   }
 }
-      
