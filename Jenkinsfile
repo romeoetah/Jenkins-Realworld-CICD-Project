@@ -25,10 +25,11 @@ pipeline {
         // dir('realworld-cicd-pipeline-project-main/') {
         sh 'mvn clean package'
       //}
+      }
       post {
         success {
           echo ' now Archiving '
-          archiveArtifacts artifacts: 'webapp/target//*.war'
+          archiveArtifacts artifacts: '**/*.war'
         }
       }
     }
@@ -38,17 +39,20 @@ pipeline {
             sh 'mvn test'
         //}
     }
+    }
     stage('Integration Test'){
         steps {
             // dir('realworld-cicd-pipeline-project-main/') {
           sh 'mvn verify -DskipUnitTests'
         //}
     }
+    }
     stage ('Checkstyle Code Analysis'){
         steps {
             // dir('realworld-cicd-pipeline-project-main/') {
             sh 'mvn checkstyle:checkstyle'
         //}
+        }
         post {
             success {
                 echo 'Generated Analysis Result'
@@ -69,6 +73,7 @@ pipeline {
                 }
            // }
         }
+    }
     }
     // stage('SonarQube GateKeeper') {
     //     steps {
@@ -96,6 +101,7 @@ pipeline {
               ]
            )
        // }
+        }
     }
     stage('Deploy to Development Env') {
         environment {
@@ -108,6 +114,7 @@ pipeline {
             }
        // }
     }
+    }
     stage('Deploy to Staging Env') {
         environment {
             HOSTS = 'stage'
@@ -118,6 +125,7 @@ pipeline {
                 sh "ansible-playbook -i ${WORKSPACE}/ansible-config/aws_ec2.yaml ${WORKSPACE}/deploy.yaml --extra-vars \"ansible_user=$USER_NAME ansible_password=$PASSWORD hosts=tag_Environment_$HOSTS workspace_path=$WORKSPACE\""
             }
         //}
+    }
     }
     stage('Quality Assurance Approval') {
         steps {
@@ -136,6 +144,7 @@ pipeline {
          //}
       }
    }
+    }
   post {
     always {
         echo 'Slack Notifications.'
@@ -145,4 +154,4 @@ pipeline {
     }
   }
 }
-
+      
