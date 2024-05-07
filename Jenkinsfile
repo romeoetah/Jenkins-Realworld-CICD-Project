@@ -79,7 +79,7 @@ pipeline {
     // }
     stage("Nexus Artifact Uploader"){
         steps{
-            // dir('realworld-cicd-pipeline-project-main/') {
+            dir('realworld-cicd-pipeline-project-main/') {
            nexusArtifactUploader(
               nexusVersion: 'nexus3',
               protocol: 'http',
