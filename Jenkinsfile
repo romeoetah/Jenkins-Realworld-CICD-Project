@@ -87,7 +87,7 @@ pipeline {
               groupId: 'webapp',
               version: "${env.BUILD_ID}-${env.BUILD_TIMESTAMP}",
               repository: 'maven-project-releases5',  //"${NEXUS_REPOSITORY}",
-              credentialsId: "${NEXUS_CREDENTIAL_ID}",
+              credentialsId: "${Nexus-Credential}",
               artifacts: [
                   [artifactId: 'webapp',
                   classifier: '',
