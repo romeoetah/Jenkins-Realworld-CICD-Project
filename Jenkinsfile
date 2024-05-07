@@ -28,7 +28,7 @@ pipeline {
       post {
         success {
           echo ' now Archiving '
-          archiveArtifacts artifacts: '**/*.war'
+          archiveArtifacts artifacts: 'realworld-cicd-pipeline-project-main/webapp/target//*.war'
         }
       }
     }
