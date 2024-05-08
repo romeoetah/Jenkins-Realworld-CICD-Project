@@ -22,36 +22,28 @@ pipeline {
   stages {
     stage('Build') {
       steps {
-        //dir('realworld-cicd-pipeline-project-main/') {
         sh 'mvn clean package'
-        //}
       }
       post {
         success {
           echo ' now Archiving '
-          archiveArtifacts artifacts: '**/*.war'
+          archiveArtifacts artifacts: '/*.war'
         }
       }
     }
     stage('Unit Test'){
         steps {
-         //dir('realworld-cicd-pipeline-project-main/') {
-         sh 'mvn test'
-         //}
+            sh 'mvn test'
         }
     }
     stage('Integration Test'){
         steps {
-         //dir('realworld-cicd-pipeline-project-main/') {
           sh 'mvn verify -DskipUnitTests'
-       // }
         }
     }
     stage ('Checkstyle Code Analysis'){
         steps {
-            //dir('realworld-cicd-pipeline-project-main/') {
             sh 'mvn checkstyle:checkstyle'
-        //}
         }
         post {
             success {
@@ -61,17 +53,15 @@ pipeline {
     }
     stage('SonarQube Inspection') {
         steps {
-            //dir('realworld-cicd-pipeline-project-main/') {
             withSonarQubeEnv('SonarQube') { 
                 withCredentials([string(credentialsId: 'SonarQube-Token', variable: 'SONAR_TOKEN')]) {
                 sh """
                 mvn sonar:sonar \
                 -Dsonar.projectKey=JavaWebApp-Project \
-                -Dsonar.host.url=172.31.14.136:9000 \
+                -Dsonar.host.url=http://172.31.14.136:9000 \
                 -Dsonar.login=$SONAR_TOKEN
                 """
                 }
-            //}
             }
         }
     }
@@ -84,7 +74,6 @@ pipeline {
     // }
     stage("Nexus Artifact Uploader"){
         steps{
-            //dir('realworld-cicd-pipeline-project-main/') {
            nexusArtifactUploader(
               nexusVersion: 'nexus3',
               protocol: 'http',
@@ -92,15 +81,14 @@ pipeline {
               groupId: 'webapp',
               version: "${env.BUILD_ID}-${env.BUILD_TIMESTAMP}",
               repository: 'maven-project-releases',  //"${NEXUS_REPOSITORY}",
-              credentialsId: "${Nexus-Credential}",
+              credentialsId: "${NEXUS_CREDENTIAL_ID}",
               artifacts: [
                   [artifactId: 'webapp',
                   classifier: '',
-                  file: "${WORKSPACE}/webapp/target/webapp.war",   
+                  file: "${WORKSPACE}/webapp/target/webapp.war",
                   type: 'war']
               ]
            )
-            //}
         }
     }
     stage('Deploy to Development Env') {
@@ -108,24 +96,19 @@ pipeline {
             HOSTS = 'dev'
         }
         steps {
-            //dir('realworld-cicd-pipeline-project-main/') {
             withCredentials([usernamePassword(credentialsId: 'Ansible-Credential', passwordVariable: 'PASSWORD', usernameVariable: 'USER_NAME')]) {
                 sh "ansible-playbook -i ${WORKSPACE}/ansible-config/aws_ec2.yaml ${WORKSPACE}/deploy.yaml --extra-vars \"ansible_user=$USER_NAME ansible_password=$PASSWORD hosts=tag_Environment_$HOSTS workspace_path=$WORKSPACE\""
             }
-          //}
         }
-
     }
     stage('Deploy to Staging Env') {
         environment {
             HOSTS = 'stage'
         }
         steps {
-           // dir('realworld-cicd-pipeline-project-main/') {
             withCredentials([usernamePassword(credentialsId: 'Ansible-Credential', passwordVariable: 'PASSWORD', usernameVariable: 'USER_NAME')]) {
                 sh "ansible-playbook -i ${WORKSPACE}/ansible-config/aws_ec2.yaml ${WORKSPACE}/deploy.yaml --extra-vars \"ansible_user=$USER_NAME ansible_password=$PASSWORD hosts=tag_Environment_$HOSTS workspace_path=$WORKSPACE\""
             }
-           // }
         }
     }
     stage('Quality Assurance Approval') {
@@ -138,14 +121,12 @@ pipeline {
             HOSTS = 'prod'
         }
         steps {
-           //dir('realworld-cicd-pipeline-project-main/') {
             withCredentials([usernamePassword(credentialsId: 'Ansible-Credential', passwordVariable: 'PASSWORD', usernameVariable: 'USER_NAME')]) {
                 sh "ansible-playbook -i ${WORKSPACE}/ansible-config/aws_ec2.yaml ${WORKSPACE}/deploy.yaml --extra-vars \"ansible_user=$USER_NAME ansible_password=$PASSWORD hosts=tag_Environment_$HOSTS workspace_path=$WORKSPACE\""
             }
-          // }
-        }
          }
       }
+   }
   post {
     always {
         echo 'Slack Notifications.'
